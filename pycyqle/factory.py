@@ -18,13 +18,18 @@ __email__ = "blangeram@gmail.com"
 __status__ = "Development"
 
 class FluentBase:
-    """ Provides simple parameter based constructor
+    """ Provides simple parameter and dictionary based constructor
     for inheriting classes and fluent setters and getters """
+
     @classmethod
     def param_build(cls, **kwargs):
+        return cls.dict_build(kwargs)
+
+    @classmethod
+    def dict_build(cls, dict):
         klass = globals()[cls.__name__]
         obj = klass()
-        for k, v in kwargs.items():
+        for k, v in dict.items():
             setter = getattr(obj, k)
             setter(v)
 
@@ -46,6 +51,7 @@ class Factory(FluentBase):
     FACTORIES = {}
 
     def __init__(self):
+        self._model = None
         # key-value mapper for factory components
         self._component_map = {}
         # key-value mapper for factory inventory
