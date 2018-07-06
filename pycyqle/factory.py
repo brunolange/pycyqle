@@ -51,6 +51,7 @@ class Factory(FluentBase):
     FACTORIES = {}
 
     def __init__(self):
+        self._model = None
         # key-value mapper for factory components
         self._component_map = {}
         # key-value mapper for factory inventory
