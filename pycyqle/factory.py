@@ -347,11 +347,7 @@ class Factory(FluentBase):
         inventory = parent['inventory']
         join = inventory.join()
 
-        return 'JOIN {table}{alias} ON {on}'.format(
-            table=join.table(),
-            alias=join.alias() if join.alias() else '',
-            on=join.on()
-        )
+        return join.compile()
 
     def _compile_where(self, binds, depth=0):
         if not binds:
@@ -668,7 +664,8 @@ class Join(FluentBase):
 
         _map = {}
         _map[reference + '.'] = replace + '.'
-        return 'JOIN {table} ON {on}'.format(
-            table='{}{}'.format(self.table(), ' {}'.format(self.alias()) if self.alias() else ''),
+        return 'JOIN {table}{alias} ON {on}'.format(
+            table=self.table(),
+            alias=' {}'.format(self.alias()) if self.alias() else '',
             on=str(self.on()).format(_map)
         )
