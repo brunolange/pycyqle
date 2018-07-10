@@ -232,9 +232,6 @@ class Factory(FluentBase):
         if not order:
             return
 
-        query = self.query(order['__components__'], binds, 0)
-        mgr.execute(query, binds)
-
         if inspect.isclass(self.model()):
             model_constructor = self.model()
         else:
@@ -247,10 +244,17 @@ class Factory(FluentBase):
         if not self.model_key() in model_map:
             model_map[self.model_key()] = {}
 
+        query = self.query(order['__components__'], binds, 0)
+        mgr.execute(query, binds)
+        data = mgr.data()
+
+        if not data:
+            return
+
         components = self._get_order_components(order['__components__'])
         payloads = {}
         _map = model_map[self.model_key()]
-        for row in mgr.data():
+        for row in data:
             _id = row['__id__']
             if _id in _map:
                 model = _map[_id]
