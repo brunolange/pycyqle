@@ -232,9 +232,6 @@ class Factory(FluentBase):
         if not order:
             return
 
-        query = self.query(order['__components__'], binds, 0)
-        mgr.execute(query, binds)
-
         if inspect.isclass(self.model()):
             model_constructor = self.model()
         else:
@@ -247,10 +244,17 @@ class Factory(FluentBase):
         if not self.model_key() in model_map:
             model_map[self.model_key()] = {}
 
+        query = self.query(order['__components__'], binds, 0)
+        mgr.execute(query, binds)
+        data = mgr.data()
+
+        if not data:
+            return
+
         components = self._get_order_components(order['__components__'])
         payloads = {}
         _map = model_map[self.model_key()]
-        for row in mgr.data():
+        for row in data:
             _id = row['__id__']
             if _id in _map:
                 model = _map[_id]
@@ -343,11 +347,7 @@ class Factory(FluentBase):
         inventory = parent['inventory']
         join = inventory.join()
 
-        return 'JOIN {table}{alias} ON {on}'.format(
-            table=join.table(),
-            alias=join.alias() if join.alias() else '',
-            on=join.on()
-        )
+        return join.compile()
 
     def _compile_where(self, binds, depth=0):
         if not binds:
@@ -650,7 +650,7 @@ class Join(FluentBase):
 
         return errors
 
-    def compile(self, counter_map):
+    def compile(self, counter_map={}):
         if self.shoehorn():
             return self.shoehorn()
 
@@ -664,7 +664,8 @@ class Join(FluentBase):
 
         _map = {}
         _map[reference + '.'] = replace + '.'
-        return 'JOIN {table} ON {on}'.format(
-            table='{}{}'.format(self.table(), ' {}'.format(self.alias()) if self.alias() else ''),
+        return 'JOIN {table}{alias} ON {on}'.format(
+            table=self.table(),
+            alias=' {}'.format(self.alias()) if self.alias() else '',
             on=str(self.on()).format(_map)
         )
