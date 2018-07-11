@@ -650,7 +650,7 @@ class Join(FluentBase):
 
         return errors
 
-    def compile(self, counter_map):
+    def compile(self, counter_map={}):
         if self.shoehorn():
             return self.shoehorn()
 
