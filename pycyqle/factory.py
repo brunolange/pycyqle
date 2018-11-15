@@ -514,9 +514,6 @@ class Factory(FluentBase):
         inventory_items = []
         for name, properties in inventory_map.items():
             inventory = Inventory()
-            _join = properties['join']
-            if isinstance(_join, list):
-                _join = '\n'.join(_join)
 
             inventory\
                 .name(name)\
@@ -532,6 +529,10 @@ class Factory(FluentBase):
     @staticmethod
     def build_join(properties):
         _join = Join()
+
+        if isinstance(properties, list):
+            properties = '\n'.join(_join)
+
         if isinstance(properties, str):
             return _join.shoehorn(properties)
 
