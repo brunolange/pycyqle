@@ -29,7 +29,7 @@ class FactoryTest(unittest.TestCase):
 
     @staticmethod
     def _format_query(query):
-        return re.sub('\s?,\s?', ',', ' '.join(query.split()))
+        return re.sub(r'\s?,\s?', ',', ' '.join(query.split()))
 
     def test_query(self):
         components = list(map(Component.dict_build, [
