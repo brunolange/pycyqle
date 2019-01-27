@@ -1,4 +1,4 @@
-""" pycycql is a Python package that enables model instances
+""" pycyqle is a Python package that enables model instances
 to be created from a relational database and a so-called 'order'
 that defines what the resulting models should be composed of.
 """
