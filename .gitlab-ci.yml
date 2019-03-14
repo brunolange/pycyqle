@@ -6,7 +6,7 @@ stages:
 
 tests:
   stage: test
-  script: python3 -m unittest discover pycyqle/test
+  script: python3 -m unittest discover -t .
 
 build:
   stage: build
