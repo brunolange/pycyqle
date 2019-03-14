@@ -164,6 +164,13 @@ class Factory(FluentBase):
         factory._process(closure)
         return self
 
+    def filter(self, *args):
+        if not args:
+            return self._filters
+
+        self._filters.append(args[0])
+        return self
+
     def _navigate_to_factory(self, path):
         factory = self
         for name in path:
@@ -311,6 +318,7 @@ class Factory(FluentBase):
             query.append(self._compile_join())
 
         query.append('WHERE {}'.format(self._compile_where(binds, depth)))
+        query += ['AND {}'.format(f) for f in self._filters]
 
         tabs = '    '*depth
         return '{}{}'.format(

@@ -1,6 +1,6 @@
 import unittest
-import re
 from pycyqle.factory import Factory, Component
+from . import utils
 
 class FactoryTest(unittest.TestCase):
 
@@ -27,10 +27,6 @@ class FactoryTest(unittest.TestCase):
         self.assertEqual(factory.table(), 'bicycle')
         self.assertEqual(factory.primary_key(), 'id')
 
-    @staticmethod
-    def _format_query(query):
-        return re.sub(r'\s?,\s?', ',', ' '.join(query.split()))
-
     def test_query(self):
         components = list(map(Component.dict_build, [
             {'name': 'tire', 'column': 'tire'},
@@ -41,8 +37,8 @@ class FactoryTest(unittest.TestCase):
 
         self.assertEqual(len(factory.components()), len(components))
         self.assertEqual(
-            FactoryTest._format_query(factory.query(['tire'], {})),
-            FactoryTest._format_query("""
+            utils.format_query(factory.query(['tire'], {})),
+            utils.format_query("""
                 SELECT bicycle.id AS "__id__"
                 ,   bicycle.tire AS tire
                 FROM bicycle WHERE 1=1
@@ -56,8 +52,8 @@ class FactoryTest(unittest.TestCase):
 
         self.assertEqual(len(factory.components()), len(components) + len(new_components))
         self.assertEqual(
-            FactoryTest._format_query(factory.query(['seat', 'pedal'], {'id0': 42})),
-            FactoryTest._format_query("""
+            utils.format_query(factory.query(['seat', 'pedal'], {'id0': 42})),
+            utils.format_query("""
             SELECT bicycle.id AS "__id__" , bicycle.seat AS seat, bicycle.pedal AS pedal
             FROM bicycle WHERE bicycle.id IN (%(id0)s)
         """))
