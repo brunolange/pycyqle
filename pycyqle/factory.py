@@ -27,8 +27,7 @@ class FluentBase:
 
     @classmethod
     def dict_build(cls, dict):
-        klass = globals()[cls.__name__]
-        obj = klass()
+        obj = cls()
         for k, v in dict.items():
             setter = getattr(obj, k)
             setter(v)
