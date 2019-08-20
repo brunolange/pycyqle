@@ -145,7 +145,7 @@ class Factory(FluentBase):
         self._order = Factory.standardize_order(args[0])
         for component_name in self._order['__components__']:
             if not self.has_component(component_name):
-                raise Exception('invalid component [{}]'.format(component_name))
+                raise ValueError('invalid component [{}]'.format(component_name))
         return self
 
     def process(self, *args):
@@ -174,7 +174,7 @@ class Factory(FluentBase):
 
     def _process(self, closure):
         if not callable(closure):
-            raise Exception('processor must be callable')
+            raise ValueError('processor must be callable')
 
         self._processors.append(utils.Processor(closure))
 
