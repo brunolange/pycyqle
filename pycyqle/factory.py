@@ -113,8 +113,7 @@ class Factory(FluentBase):
         if not args:
             return self._inventory_map
 
-        for inventory in args[0]:
-            self._inventory_map[inventory.name()] = inventory
+        self._inventory_map = {inv.name(): inv for inv in args[0]}
 
         return self
 
@@ -197,10 +196,7 @@ class Factory(FluentBase):
         """ Returns the key associated with the registerd model.
         The key is used in the factory's model map."""
         model = self.model()
-        if inspect.isclass(model):
-            return model.__name__
-
-        return model
+        return model.__name__ if inspect.isclass(model) else model
 
     def build(self, mgr, order, ids):
         """ Returns a list of assembled models given a data source
@@ -208,16 +204,17 @@ class Factory(FluentBase):
         self.order(order)
         self._model_map = {}
         self._build(mgr, self.order(), Factory.binds(ids), self._model_map)
+        model_key = self.model_key()
         if not ids:
-            models = self._model_map[self.model()].values()
+            models = self._model_map[model_key].values()
         else:
             if not isinstance(ids, list):
                 ids = [ids]
 
-            models = list(map(
-                lambda i: self._model_map[self.model_key()][i],
-                filter(lambda i: i in self._model_map[self.model_key()], ids)
-            ))
+            models = [
+                self._model_map[model_key][_id] for _id in ids
+                if _id in self._model_map[model_key]
+            ]
 
         if ids is None or isinstance(ids, list):
             return models
@@ -495,35 +492,36 @@ class Factory(FluentBase):
 
     @staticmethod
     def build_components(components_map):
-        components = []
-        for name, properties in components_map.items():
+        def _mapper(name, properties):
             component = Component()
             component\
                 .name(name)\
                 .column(properties['column'])\
                 .carrier(properties['carrier'])\
                 .ctype(properties['type'] if 'type' in properties else 'string')
+            return component
 
-            components.append(component)
-
-        return components
+        return [
+            _mapper(name, properties)
+            for name, properties in components_map.items()
+        ]
 
     @staticmethod
     def build_inventory(inventory_map):
-        inventory_items = []
-        for name, properties in inventory_map.items():
+        def _mapper(name, properties):
             inventory = Inventory()
-
             inventory\
                 .name(name)\
                 .factory(Factory.from_json(properties['factory']))\
                 .join(Factory.build_join(properties['join']))\
                 .carrier(properties['carrier'])\
                 .single(properties['single'] if 'single' in properties else False)
+            return inventory
 
-            inventory_items.append(inventory)
-
-        return inventory_items
+        return [
+            _mapper(name, properties)
+            for name, properties in inventory_map.items()
+        ]
 
     @staticmethod
     def build_join(properties):
