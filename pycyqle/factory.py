@@ -4,6 +4,7 @@ that defines what the resulting models should be composed of.
 """
 
 from functools import reduce
+from operator import iconcat
 from copy import deepcopy
 import importlib
 import inspect
@@ -163,14 +164,7 @@ class Factory(FluentBase):
         return self
 
     def _navigate_to_factory(self, path):
-        factory = self
-        for name in path:
-            if not factory.has_inventory_item(name):
-                raise Exception('invalid path')
-
-            factory = factory.inventory(name).factory()
-
-        return factory
+        return reduce(lambda fac, name: fac.inventory(name).factory(), path, self)
 
     def _process(self, closure):
         if not callable(closure):
@@ -187,10 +181,11 @@ class Factory(FluentBase):
         if not self.model():
             errors.append('missing model')
 
-        for inventory in self._inventory_map.values():
-            errors += inventory.validate()
-
-        return errors
+        return reduce(
+            iconcat,
+            [i.validate() for i in self._inventory_map.values()],
+            errors
+        )
 
     def model_key(self):
         """ Returns the key associated with the registerd model.
