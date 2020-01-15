@@ -18,33 +18,16 @@ __maintainer__ = "Bruno Lange"
 __email__ = "blangeram@gmail.com"
 __status__ = "Development"
 
-class FluentBase:
-    """ Provides simple parameter and dictionary based constructor
-    for inheriting classes and fluent setters and getters """
-
-    @classmethod
-    def param_build(cls, **kwargs):
-        return cls.dict_build(kwargs)
-
-    @classmethod
-    def dict_build(cls, dict):
-        obj = cls()
-        for k, v in dict.items():
-            setter = getattr(obj, k)
-            setter(v)
-
+def _fluent(obj, attr, *args):
+    if args:
+        setattr(obj, attr, args[0])
         return obj
+    return getattr(obj, attr)
 
-    def _fluent(self, attr, args):
-        if args:
-            setattr(self, attr, args[0])
-            return self
-        return getattr(self, attr)
 
-class Factory(FluentBase):
-    """ Factory instances can build models given a data source
-    and an order which defines what the final models should be composed
-    of.
+class Factory:
+    """Factory instances can build models given a data source and
+    an order which defines what the final models should be composed of.
     """
 
     # Factories cache
@@ -66,15 +49,15 @@ class Factory(FluentBase):
 
     def name(self, *args):
         """ Fluent setter/getter for factory name."""
-        return self._fluent('_name', args)
+        return _fluent(self, '_name', *args)
 
     def table(self, *args):
         """ Fluent setter/getter for factory table."""
-        return self._fluent('_table', args)
+        return _fluent(self, '_table', *args)
 
     def alias(self, *args):
         """ Fluent setter/getter for factory table alias."""
-        return self._fluent('_alias', args)
+        return _fluent(self, '_alias', *args)
 
     def prefix(self):
         """ Returns factory table prefix."""
@@ -82,11 +65,11 @@ class Factory(FluentBase):
 
     def primary_key(self, *args):
         """ Fluent setter/getter for factory table primary key."""
-        return self._fluent('_primary_key', args)
+        return _fluent(self, '_primary_key', *args)
 
     def model(self, *args):
         """ Fluent setter/getter for factory model."""
-        return self._fluent('_model', args)
+        return _fluent(self, '_model', *args)
 
     def components(self, *args):
         """ Fluent setter/getter for factory components.
@@ -191,6 +174,7 @@ class Factory(FluentBase):
         """ Returns the key associated with the registerd model.
         The key is used in the factory's model map."""
         model = self.model()
+        # pylint: disable=no-member
         return model.__name__ if inspect.isclass(model) else model
 
     def build(self, mgr, order, ids):
@@ -537,24 +521,24 @@ class Factory(FluentBase):
     def load_factories(factory_name):
         return []
 
-class Component(FluentBase):
+class Component:
     def name(self, *args):
-        return self._fluent('_name', args)
+        return _fluent(self, '_name', *args)
 
     def column(self, *args):
-        return self._fluent('_column', args)
+        return _fluent(self, '_column', *args)
 
     def carrier(self, *args):
-        return self._fluent('_carrier', args)
+        return _fluent(self, '_carrier', *args)
 
     def ctype(self, *args):
-        return self._fluent('_type', args)
+        return _fluent(self, '_type', *args)
 
     def format_column(self, prefix):
         column = '{}.{}'.format(prefix, self.column())
         return '{} AS {}'.format(column, self.name())
 
-class Inventory(FluentBase):
+class Inventory:
     def __init__(self):
         super().__init__()
         self._factory = None
@@ -575,16 +559,16 @@ class Inventory(FluentBase):
         return name in self._inventory_map
 
     def name(self, *args):
-        return self._fluent('_name', args)
+        return _fluent(self, '_name', *args)
 
     def carrier(self, *args):
-        return self._fluent('_carrier', args)
+        return _fluent(self, '_carrier', *args)
 
     def join(self, *args):
-        return self._fluent('_join', args)
+        return _fluent(self, '_join', *args)
 
     def single(self, *args):
-        return self._fluent('_single', args)
+        return _fluent(self, '_single', *args)
 
     def factory(self, *args):
         if not args:
@@ -611,7 +595,7 @@ class Inventory(FluentBase):
 
         return errors
 
-class Join(FluentBase):
+class Join:
     def __init__(self):
         super().__init__()
         self._table = None
@@ -620,16 +604,16 @@ class Join(FluentBase):
         self._shoehorn = None
 
     def table(self, *args):
-        return self._fluent('_table', args)
+        return _fluent(self, '_table', *args)
 
     def alias(self, *args):
-        return self._fluent('_alias', args)
+        return _fluent(self, '_alias', *args)
 
     def on(self, *args):
-        return self._fluent('_on', args)
+        return _fluent(self, '_on', *args)
 
     def shoehorn(self, *args):
-        return self._fluent('_shoehorn', args)
+        return _fluent(self, '_shoehorn', *args)
 
     def reference(self):
         return self.alias() if self.alias() else self.table()

@@ -1,10 +1,14 @@
 import unittest
+
+from pycyqle.builder import dict_build, param_build
 from pycyqle.factory import Component
+
 
 class ComponentTest(unittest.TestCase):
 
     def test_param_build(self):
-        component = Component.param_build(
+        component = param_build(
+            Component,
             name='tire',
             carrier='set_tire'
         )
@@ -12,7 +16,7 @@ class ComponentTest(unittest.TestCase):
         return component
 
     def test_dict_build(self):
-        component = Component.dict_build({
+        component = dict_build(Component, {
             'name': 'tire',
             'carrier': 'set_tire'
         })

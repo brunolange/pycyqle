@@ -1,11 +1,15 @@
-import unittest
 import re
-from pycyqle.factory import Factory, Component
+import unittest
+from functools import partial
+
+from pycyqle.builder import dict_build, param_build
+from pycyqle.factory import Component, Factory
+
 
 class FactoryTest(unittest.TestCase):
 
     def test_param_build(self):
-        factory = Factory.param_build(
+        factory = param_build(Factory,
             name='bicycle-factory',
             table='bicycle',
             primary_key='id'
@@ -14,7 +18,7 @@ class FactoryTest(unittest.TestCase):
         return factory
 
     def test_dict_build(self):
-        factory = Factory.dict_build({
+        factory = dict_build(Factory, {
             'name': 'bicycle-factory',
             'table': 'bicycle',
             'primary_key': 'id'
@@ -32,7 +36,7 @@ class FactoryTest(unittest.TestCase):
         return re.sub(r'\s?,\s?', ',', ' '.join(query.split()))
 
     def test_query(self):
-        components = list(map(Component.dict_build, [
+        components = list(map(partial(dict_build, Component), [
             {'name': 'tire', 'column': 'tire'},
             {'name': 'seat', 'column': 'seat'}
         ]))
@@ -49,7 +53,7 @@ class FactoryTest(unittest.TestCase):
             """
         ))
 
-        new_components = list(map(Component.dict_build, [
+        new_components = list(map(partial(dict_build, Component), [
             {'name': 'pedal', 'column': 'pedal'}
         ]))
         factory.components(components + new_components)
