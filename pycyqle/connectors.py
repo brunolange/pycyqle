@@ -1,5 +1,6 @@
-import mysql.connector
 import getpass
+
+import mysql.connector
 
 
 class MySQLConnector():

@@ -36,6 +36,7 @@ class Factory:
 
     def __init__(self):
         self._model = None
+        self._model_map = {}
         # key-value mapper for factory components
         self._component_map = {}
         # key-value mapper for factory inventory
@@ -339,10 +340,7 @@ class Factory:
             return '{prefix}.{pk} IN ({binds})'.format(
                 prefix=self.prefix(),
                 pk=self.primary_key() if self.primary_key() else 'ROWID',
-                binds=','.join(list(map(
-                    lambda i: '%(id{})s'.format(i),
-                    range(len(binds))
-                )))
+                binds=','.join('%(id{})s'.format(i) for i in range(len(binds)))
             )
 
         parent_factory = self.parent()['factory']
@@ -390,10 +388,7 @@ class Factory:
     @staticmethod
     def standardize_order(order):
         if not isinstance(order, dict):
-            _order = {}
-            for i in range(len(order)):
-                _order[i] = order[i]
-            order = _order
+            order = {i: v for i, v in enumerate(order)}
 
         std_order = {'__components__': []}
         for key, value in order.items():
@@ -413,28 +408,30 @@ class Factory:
             return Factory.from_dict(json.load(handle))
 
     @staticmethod
-    def from_dict(d):
-        factory_name = d['name']
+    def from_dict(dic):
+        factory_name = dic['name']
         if factory_name in Factory.FACTORIES:
             return Factory.FACTORIES[factory_name]
 
-        if 'inventory' not in d:
-            d['inventory'] = {}
+        if 'inventory' not in dic:
+            dic['inventory'] = {}
 
         factory = Factory()
         factory.name(factory_name)
 
         Factory.FACTORIES[factory_name] = factory
 
-        factory\
-            .table(d['table'])\
-            .primary_key(d['primary_key'])\
-            .model(d['model'])\
-            .components(Factory.build_components(d['components']))\
-            .inventory_items(Factory.build_inventory(d['inventory']))
+        (
+            factory
+            .table(dic['table'])
+            .primary_key(dic['primary_key'])
+            .model(dic['model'])
+            .components(Factory.build_components(dic['components']))
+            .inventory_items(Factory.build_inventory(dic['inventory']))
+        )
 
-        if 'alias' in d:
-            factory.alias(d['alias'])
+        if 'alias' in dic:
+            factory.alias(dic['alias'])
 
         errors = factory.validate()
         if errors:
