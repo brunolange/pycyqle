@@ -6,7 +6,9 @@ stages:
 
 tests:
   stage: test
-  script: python3 -m unittest discover pycyqle/test
+  script:
+    - pip3 install -r requirements.txt
+    - python3 -m unittest discover pycyqle/test
 
 build:
   stage: build
