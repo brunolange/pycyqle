@@ -27,5 +27,6 @@ class ComponentTest(unittest.TestCase):
         self.assertEqual(component.name(), 'tire')
         self.assertEqual(component.carrier(), 'set_tire')
 
+
 if __name__ == '__main__':
     unittest.main()

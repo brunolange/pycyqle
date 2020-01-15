@@ -10,6 +10,7 @@ __maintainer__ = "Bruno Lange"
 __email__ = "blangeram@gmail.com"
 __status__ = "Development"
 
+
 def param_build(cls, **kwargs):
     return dict_build(cls, kwargs)
 

@@ -18,6 +18,7 @@ __maintainer__ = "Bruno Lange"
 __email__ = "blangeram@gmail.com"
 __status__ = "Development"
 
+
 def _fluent(obj, attr, *args):
     if args:
         setattr(obj, attr, args[0])
@@ -129,7 +130,9 @@ class Factory:
         self._order = Factory.standardize_order(args[0])
         for component_name in self._order['__components__']:
             if not self.has_component(component_name):
-                raise ValueError('invalid component [{}]'.format(component_name))
+                raise ValueError(
+                    'invalid component [{}]'.format(component_name)
+                )
         return self
 
     def process(self, *args):
@@ -147,7 +150,11 @@ class Factory:
         return self
 
     def _navigate_to_factory(self, path):
-        return reduce(lambda fac, name: fac.inventory(name).factory(), path, self)
+        return reduce(
+            lambda fac, name: fac.inventory(name).factory(),
+            path,
+            self
+        )
 
     def _process(self, closure):
         if not callable(closure):
@@ -247,7 +254,7 @@ class Factory:
 
             if self.parent():
                 p_id = row['__pid__']
-                if not p_id in payloads:
+                if p_id not in payloads:
                     payloads[p_id] = []
 
                 payloads[p_id].append(model)
@@ -341,7 +348,7 @@ class Factory:
         parent_factory = self.parent()['factory']
         return '{table}.{pk} IN (\n{query}\n{depth})'.format(
             table=parent_factory.table(),
-            pk=parent_factory.primary_key() if parent_factory.primary_key() else 'ROWID',
+            pk=parent_factory.primary_key() or 'ROWID',
             query=parent_factory.query(None, binds, depth+1),
             depth='   '*depth
         )
@@ -411,7 +418,7 @@ class Factory:
         if factory_name in Factory.FACTORIES:
             return Factory.FACTORIES[factory_name]
 
-        if not 'inventory' in d:
+        if 'inventory' not in d:
             d['inventory'] = {}
 
         factory = Factory()
@@ -444,24 +451,26 @@ class Factory:
         if factory_name not in factories:
             raise Exception('can not load {}'.format(factory_name))
 
-        factory_properties = factories[factory_name]
-        if not 'inventory' in factory_properties:
-            factory_properties['inventory'] = []
+        fac_props = factories[factory_name]
+        if 'inventory' not in fac_props:
+            fac_props['inventory'] = []
 
         factory = Factory()
         factory.name(factory_name)
 
         Factory.FACTORIES[factory_name] = factory
 
-        factory\
-            .table(factory_properties['table'])\
-            .primary_key(factory_properties['primary_key'])\
-            .model(factory_properties['model'])\
-            .components(Factory.build_components(factory_properties['components']))\
-            .inventory_items(Factory.build_inventory(factory_properties['primary_key']))
+        (
+            factory
+            .table(fac_props['table'])
+            .primary_key(fac_props['primary_key'])
+            .model(fac_props['model'])
+            .components(Factory.build_components(fac_props['components']))
+            .inventory_items(Factory.build_inventory(fac_props['primary_key']))
+        )
 
-        if 'alias' in factory_properties:
-            factory.alias(factory_properties['alias'])
+        if 'alias' in fac_props:
+            factory.alias(fac_props['alias'])
 
         errors = factory.validate()
         if errors:
@@ -472,13 +481,13 @@ class Factory:
     @staticmethod
     def build_components(components_map):
         def _mapper(name, properties):
-            component = Component()
-            component\
-                .name(name)\
-                .column(properties['column'])\
-                .carrier(properties['carrier'])\
-                .ctype(properties['type'] if 'type' in properties else 'string')
-            return component
+            return (
+                Component()
+                .name(name)
+                .column(properties['column'])
+                .carrier(properties['carrier'])
+                .ctype(properties.get('type', 'string'))
+            )
 
         return [
             _mapper(name, properties)
@@ -488,14 +497,14 @@ class Factory:
     @staticmethod
     def build_inventory(inventory_map):
         def _mapper(name, properties):
-            inventory = Inventory()
-            inventory\
-                .name(name)\
-                .factory(Factory.from_json(properties['factory']))\
-                .join(Factory.build_join(properties['join']))\
-                .carrier(properties['carrier'])\
-                .single(properties['single'] if 'single' in properties else False)
-            return inventory
+            return (
+                Inventory()
+                .name(name)
+                .factory(Factory.from_json(properties['factory']))
+                .join(Factory.build_join(properties['join']))
+                .carrier(properties['carrier'])
+                .single(properties.get('single', False))
+            )
 
         return [
             _mapper(name, properties)
@@ -521,6 +530,7 @@ class Factory:
     def load_factories(factory_name):
         return []
 
+
 class Component:
     def name(self, *args):
         return _fluent(self, '_name', *args)
@@ -537,6 +547,7 @@ class Component:
     def format_column(self, prefix):
         column = '{}.{}'.format(prefix, self.column())
         return '{} AS {}'.format(column, self.name())
+
 
 class Inventory:
     def __init__(self):
@@ -594,6 +605,7 @@ class Inventory:
             errors.append('missing inventory carrier')
 
         return errors
+
 
 class Join:
     def __init__(self):

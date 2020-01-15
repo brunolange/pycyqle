@@ -1,6 +1,7 @@
 import mysql.connector
 import getpass
 
+
 class MySQLConnector():
     def __init__(self, conn):
         self._conn = conn
